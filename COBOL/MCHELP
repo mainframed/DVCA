@@ -1,0 +1,148 @@
+      *///////////////////////////////////////////////////////////////
+      * Mel's Cargo
+      * HELP:
+      *   Shows the help transaction
+      *
+      * Vulnerabilities:
+      *   None.
+      *
+      * AUTHOR:
+      *   Philip Young aka Soldier of FORTRAN
+      *
+      * 09/17/2022
+      * License GPL v3
+      *///////////////////////////////////////////////////////////////
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID.  MCHELP.
+       AUTHOR. SOLDIER OF FORTRAN.
+       INSTALLATION. DAMN VULNERABLE.
+       DATE-WRITTEN. 09/17/2022.
+       SECURITY. CONFIDENTIAL.
+       ENVIRONMENT DIVISION.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+      * COMM AREA
+       01  MC-COMMS.
+           05 FILLER PIC X(14).
+      * WTO MESSAGE STORAGE
+       01  RESPONSE-CODE  PIC S9(4) COMP.
+      *
+       COPY HELPMAP.
+       COPY DFHAID.
+       COPY DFHBMSCA.
+       LINKAGE SECTION.
+      *
+       01  DFHCOMMAREA                       PIC X(14).
+      *
+       PROCEDURE DIVISION.
+       MAIN.
+      *
+           PERFORM HANDLE-AIDS.
+
+           IF EIBCALEN > ZERO THEN
+               MOVE DFHCOMMAREA TO MC-COMMS.
+
+           EXEC CICS SEND MAP('HELP')
+               MAPSET('HELPMAP') ERASE
+           END-EXEC
+
+           EXEC CICS
+               RETURN TRANSID('HELP')
+                      COMMAREA(MC-COMMS)
+           END-EXEC.
+
+
+      *
+      *    *************************************************************
+      *
+      * This function handles all the AIDs
+      *
+       HANDLE-AIDS.
+           IF EIBAID = DFHENTER
+               EXEC CICS XCTL PROGRAM('MCMMENU') END-EXEC
+           ELSE
+           IF EIBAID = DFHCLEAR
+               EXEC CICS XCTL PROGRAM('MCMMENU') END-EXEC
+           ELSE
+           IF EIBAID = DFHPA1
+               EXEC CICS XCTL PROGRAM('MCMMENU') END-EXEC
+           ELSE
+           IF EIBAID = DFHPA2
+               EXEC CICS XCTL PROGRAM('MCMMENU') END-EXEC
+           ELSE
+           IF EIBAID = DFHPA3
+               EXEC CICS XCTL PROGRAM('MCMMENU') END-EXEC
+           ELSE
+           IF EIBAID = DFHPF1
+               EXEC CICS XCTL PROGRAM('MCMMENU') END-EXEC
+           ELSE
+           IF EIBAID = DFHPF2
+               EXEC CICS XCTL PROGRAM('MCMMENU') END-EXEC
+           ELSE
+           IF EIBAID = DFHPF3
+               EXEC CICS XCTL PROGRAM('MCMMENU') END-EXEC
+           ELSE
+           IF EIBAID = DFHPF4
+               EXEC CICS XCTL PROGRAM('MCMMENU') END-EXEC
+           ELSE
+           IF EIBAID = DFHPF5
+               EXEC CICS XCTL PROGRAM('MCMMENU') END-EXEC
+           ELSE
+           IF EIBAID = DFHPF6
+               EXEC CICS XCTL PROGRAM('MCMMENU') END-EXEC
+           ELSE
+           IF EIBAID = DFHPF7
+               EXEC CICS XCTL PROGRAM('MCMMENU') END-EXEC
+           ELSE
+           IF EIBAID = DFHPF8
+               EXEC CICS XCTL PROGRAM('MCMMENU') END-EXEC
+           ELSE
+           IF EIBAID = DFHPF9
+               EXEC CICS XCTL PROGRAM('MCMMENU') END-EXEC
+           ELSE
+           IF EIBAID = DFHPF10
+               EXEC CICS XCTL PROGRAM('MCMMENU') END-EXEC
+           ELSE
+           IF EIBAID = DFHPF11
+               EXEC CICS XCTL PROGRAM('MCMMENU') END-EXEC
+           ELSE
+           IF EIBAID = DFHPF12
+               EXEC CICS XCTL PROGRAM('MCMMENU') END-EXEC
+           ELSE
+           IF EIBAID = DFHPF13
+               EXEC CICS XCTL PROGRAM('MCMMENU') END-EXEC
+           ELSE
+           IF EIBAID = DFHPF14
+               EXEC CICS XCTL PROGRAM('MCMMENU') END-EXEC
+           ELSE
+           IF EIBAID = DFHPF15
+               EXEC CICS XCTL PROGRAM('MCMMENU') END-EXEC
+           ELSE
+           IF EIBAID = DFHPF16
+               EXEC CICS XCTL PROGRAM('MCMMENU') END-EXEC
+           ELSE
+           IF EIBAID = DFHPF17
+               EXEC CICS XCTL PROGRAM('MCMMENU') END-EXEC
+           ELSE
+           IF EIBAID = DFHPF18
+               EXEC CICS XCTL PROGRAM('MCMMENU') END-EXEC
+           ELSE
+           IF EIBAID = DFHPF19
+               EXEC CICS XCTL PROGRAM('MCMMENU') END-EXEC
+           ELSE
+           IF EIBAID = DFHPF20
+               EXEC CICS XCTL PROGRAM('MCMMENU') END-EXEC
+           ELSE
+           IF EIBAID = DFHPF21
+               EXEC CICS XCTL PROGRAM('MCMMENU') END-EXEC
+           ELSE
+           IF EIBAID = DFHPF22
+               EXEC CICS XCTL PROGRAM('MCMMENU') END-EXEC
+           ELSE
+           IF EIBAID = DFHPF23
+               EXEC CICS XCTL PROGRAM('MCMMENU') END-EXEC
+           ELSE
+           IF EIBAID = DFHPF24
+               EXEC CICS XCTL PROGRAM('MCMMENU') END-EXEC.
+      *    This does nothing but the compiler complains ending on an IF
+           MOVE 0 TO RESPONSE-CODE.

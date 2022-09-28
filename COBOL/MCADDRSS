@@ -1,0 +1,306 @@
+      *///////////////////////////////////////////////////////////////
+      * Mel's Cargo
+      * MCADDRSS:
+      *   Display and Edit Address
+      *
+      * Vulnerabilities:
+      *   This uses a supervisor pin code to check if you have the
+      *   rights to change the address. This is bad practice, the 
+      *   Enterprise Security Manager (ESM), i.e. RACF/RAKF, ACF2,
+      *   TopSecret should control access. Using a tool you could easily
+      *   brute force the 4 digit pin. Read the source code if you dont
+      *   want to brute force it.
+      *
+      * AUTHOR:
+      *   Philip Young aka Soldier of FORTRAN
+      *
+      * 09/17/2022
+      * License GPL v3
+      *///////////////////////////////////////////////////////////////
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID.   MCADDRSS.
+       AUTHOR. SOLDIER OF FORTRAN.
+       INSTALLATION. DAMN VULNERABLE.
+       DATE-WRITTEN. 09/17/2022.
+       SECURITY. CONFIDENTIAL.
+       ENVIRONMENT DIVISION.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+      * COMM AREA
+       01  MC-COMMS.
+           05 START-RECORD-ID PIC 9(4) VALUE 0001.
+           05 FILLER PIC X(10).
+      * WTO MESSAGE STORAGE
+       01  WTO-MESSAGE PIC X(38) VALUE SPACES.
+       01  MESSAGES.
+           05 TITLES               PIC X(18) VALUE 'Supervisode Code: '.
+           05 PROD-NAME            PIC X(4).
+       01  RESPONSE-CODE  PIC S9(4) COMP.
+      * VSAM Record Layout
+       01  SHIP-TO-ADDRESS.
+           05 SHIP-KEY          PIC X(4).
+           05 SHIP-NAME         PIC X(44).
+           05 SHIP-STREET       PIC X(44).
+           05 SHIP-CITY         PIC X(44).
+           05 SHIP-STATE        PIC X(44).
+           05 SHIP-ZIP          PIC X(44).
+           05 SHIP-COUNTRY      PIC X(44).
+       01  PIN PIC 9(4) VALUE 0000.
+       01  SUPERVISOR-CODE PIC 9(4) VALUE 1337.
+      *
+       COPY MCADDR.
+       COPY DFHAID.
+       COPY DFHBMSCA.
+       LINKAGE SECTION.
+      *
+       01  DFHCOMMAREA                       PIC X(14).
+      *
+       PROCEDURE DIVISION.
+       MAIN.
+      *
+           PERFORM HANDLE-AIDS.
+           MOVE 'Starting MCAD' TO WTO-MESSAGE.
+           PERFORM WTO.
+
+           IF EIBCALEN > ZERO THEN
+               MOVE DFHCOMMAREA TO MC-COMMS.
+
+           IF EIBCALEN EQUAL TO ZERO
+              PERFORM GET-ADDRESS-RECORD
+              PERFORM FILL-FIELDS
+           ELSE
+           IF EIBAID EQUAL TO DFHPF3
+                EXEC CICS SEND CONTROL ERASE FREEKB END-EXEC
+                EXEC CICS RETURN END-EXEC
+           ELSE
+           IF EIBAID EQUAL TO DFHPF5
+              MOVE 'Returning to main menu' TO WTO-MESSAGE
+              PERFORM WTO
+               EXEC CICS XCTL
+                   PROGRAM('MCMMENU')
+               END-EXEC
+           ELSE
+           IF EIBAID EQUAL TO DFHENTER
+              PERFORM GET-INPUT.
+           
+           EXEC CICS SEND MAP('MCADDRSS')
+               MAPSET('MCADDR') ERASE
+           END-EXEC
+           MOVE 'Done Showing MCAD' TO WTO-MESSAGE
+           PERFORM WTO.
+
+           EXEC CICS
+               RETURN TRANSID('MCAD')
+                      COMMAREA(MC-COMMS)
+           END-EXEC.
+       MC-EXIT.
+           GOBACK.
+
+      *
+      * Gets a record from KICKS.DVCA.ADDRESS.VSAM
+      *
+       GET-ADDRESS-RECORD.
+           MOVE 'RECORD FROM KICKS.DVCA.ADDRESS.VSAM' TO WTO-MESSAGE.
+           PERFORM WTO.
+
+           EXEC CICS STARTBR FILE('ADDRESS')
+                RIDFLD(START-RECORD-ID)
+           END-EXEC.
+
+           EXEC CICS READNEXT FILE('ADDRESS')
+               RIDFLD(START-RECORD-ID)
+               INTO(SHIP-TO-ADDRESS)
+           END-EXEC.
+
+      * Fills the fields in the MCADDR MAP
+       FILL-FIELDS.
+           MOVE 'Filling MAP with record information' TO WTO-MESSAGE.
+           PERFORM WTO.
+           MOVE SPACES TO NAMEO.
+           MOVE SPACES TO STREETO.
+           MOVE SPACES TO CITYO.
+           MOVE SPACES TO STATEO.
+           MOVE SPACES TO ZIPO.
+           MOVE SPACES TO COUNTRYO.
+           MOVE SPACES TO PINO.
+           MOVE SHIP-NAME TO NAMEO.
+           MOVE SHIP-STREET TO STREETO.
+           MOVE SHIP-CITY TO CITYO.
+           MOVE SHIP-STATE TO STATEO.
+           MOVE SHIP-ZIP TO ZIPO.
+           MOVE SHIP-COUNTRY TO COUNTRYO.
+           MOVE PIN TO PINO.
+      *     
+       GET-INPUT.
+      * Get the option the user enters
+
+           MOVE 'Getting Input from User.' TO WTO-MESSAGE.
+           PERFORM WTO.
+           EXEC CICS
+               RECEIVE MAP('MCADDRSS')
+                       MAPSET('MCADDR')
+                       INTO(MCADDRSSI) ASIS
+           END-EXEC.
+
+           IF PINI IS EQUAL TO SUPERVISOR-CODE PERFORM UPDATE-ADDRESS
+           ELSE
+               MOVE 'INVALID SUPERVISODE CODE' TO MESSAGEO.
+      *    This does nothing but the compiler complains ending on an IF
+           MOVE 0 TO RESPONSE-CODE.
+      *
+       UPDATE-ADDRESS.
+           MOVE 'VALID PIN ENTERED UPDATING ADDRESS' TO WTO-MESSAGE.
+           PERFORM WTO.
+
+           EXEC CICS READ DATASET('ADDRESS')
+               RIDFLD(START-RECORD-ID)
+               INTO(SHIP-TO-ADDRESS) UPDATE
+           END-EXEC
+
+           MOVE NAMEI TO SHIP-NAME.
+           MOVE STREETI TO SHIP-STREET.
+           MOVE CITYI TO SHIP-CITY.
+           MOVE STATEI TO SHIP-STATE.
+           MOVE ZIPI TO SHIP-ZIP.
+           MOVE COUNTRYI TO SHIP-COUNTRY.
+
+           EXEC CICS REWRITE DATASET('ADDRESS')
+                  FROM(SHIP-TO-ADDRESS)
+           END-EXEC
+
+           MOVE 'VALID PIN ENTERED ADDRESS UPDATED' TO MESSAGEO.
+           PERFORM GET-ADDRESS-RECORD.
+           PERFORM FILL-FIELDS.
+      *
+      *    *************************************************************
+      *
+      * WRITES A MESSAGE TO THE CONSOLE
+      *
+       WTO.
+           EXEC CICS WRITE OPERATOR
+               TEXT(WTO-MESSAGE)
+           END-EXEC.
+           MOVE SPACES TO WTO-MESSAGE.
+      *
+      * This function handles all the AIDs
+      *
+       HANDLE-AIDS.
+           IF EIBAID = DFHENTER
+               MOVE '** AID: ENTER' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHCLEAR
+               MOVE '** AID: ENTER' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPA1
+               MOVE '** AID: PA1' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPA2
+               MOVE '** AID: PA2' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPA3
+               MOVE '** AID: PA3' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF1
+               MOVE '** AID: F1' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF2
+               MOVE '** AID: F2' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF3
+               MOVE '** AID: F3' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF4
+               MOVE '** AID: F4' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF5
+               MOVE '** AID: F5' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF6
+               MOVE '** AID: F6' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF7
+               MOVE '** AID: F7' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF8
+               MOVE '** AID: F8' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF9
+               MOVE '** AID: F9' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF10
+               MOVE '** AID: F10' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF11
+               MOVE '** AID: F11' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF12
+               MOVE '** AID: F12' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF13
+               MOVE '** AID: F13' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF14
+               MOVE '** AID: F14' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF15
+               MOVE '** AID: F15' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF16
+               MOVE '** AID: F16' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF17
+               MOVE '** AID: F17' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF18
+               MOVE '** AID: F18' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF19
+               MOVE '** AID: F19' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF20
+               MOVE '** AID: F20' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF21
+               MOVE '** AID: F21' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF22
+               MOVE '** AID: F22' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF23
+               MOVE '** AID: F23' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF24
+               MOVE '** AID: F24' TO WTO-MESSAGE
+               PERFORM WTO.
+      *    This does nothing but the compiler complains ending on an IF
+           MOVE 0 TO RESPONSE-CODE.
+           
+       

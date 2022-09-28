@@ -1,0 +1,35 @@
+         PRINT GEN
+* Note the 2nd & 3rd lines below are for CMS only...
+         KIKFCT TYPE=INITIAL,SUFFIX=1$,                                *
+               CATUSER=CMSUSER,CATLNK1=194,CATLNK2=222,                *
+               CATPASS=WRITE,CATFM=O,CATVOL=VSAMIN
+*
+*        TEMPORARY STORAGE (AUX)
+*
+         KIKFCT TYPE=DATASET,DATASET=KIKTEMP
+*
+*        TRANSIENT DATA (INTRA)
+*
+         KIKFCT TYPE=DATASET,DATASET=KIKINTRA
+*
+*        SOURCE TRACE
+*
+         KIKFCT TYPE=DATASET,DATASET=KSDB
+*
+*        ACCOUNTS AND CONTRIBUTIONS FCT ENTRY (ONLY ONE)
+*
+         KIKFCT TYPE=DATASET,DATASET=TACDATA
+*
+*        M""""""'YMM M""MMMMM""M MM'""""'YMM MMP"""""""MM 
+*        M  mmmm. `M M  MMMMM  M M' .mmm. `M M' .mmmm  MM 
+*        M  MMMMM  M M  MMMMP  M M  MMMMMooM M         `M 
+*        M  MMMMM  M M  MMMM' .M M  MMMMMMMM M  MMMMM  MM 
+*        M  MMMM' .M M  MMP' .MM M. `MMM' .M M  MMMMM  MM 
+*        M       .MM M     .dMMM MM.     .dM M  MMMMM  MM 
+*        MMMMMMMMMMM MMMMMMMMMMM MMMMMMMMMMM MMMMMMMMMMMM 
+         KIKFCT TYPE=DATASET,DATASET=PRODUCTS
+         KIKFCT TYPE=DATASET,DATASET=HISTORY
+         KIKFCT TYPE=DATASET,DATASET=ADDRESS
+*
+         KIKFCT TYPE=FINAL
+         END

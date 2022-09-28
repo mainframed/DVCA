@@ -1,0 +1,387 @@
+      *///////////////////////////////////////////////////////////////
+      * Mel's Cargo
+      * MCHISTRY:
+      *   Show secret screen only for real hackers
+      *
+      * Vulnerabilities:
+      *   None, this just shows the purchase history
+      *
+      * AUTHOR:
+      *   Philip Young aka Soldier of FORTRAN
+      *
+      * 09/17/2022
+      * License GPL v3
+      *///////////////////////////////////////////////////////////////
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID.   MCHISTRY.
+       AUTHOR. SOLDIER OF FORTRAN.
+       INSTALLATION. DAMN VULNERABLE.
+       DATE-WRITTEN. 09/17/2022.
+       SECURITY. CONFIDENTIAL.
+       ENVIRONMENT DIVISION.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+      * COMM AREA
+       01  MC-COMMS.
+           05  START-RECORD-ID PIC 9(5) VALUE 00001.
+           05 FILLER PIC X(9).
+       01  WTO-MESSAGE PIC X(38) VALUE SPACES.
+      * HISTORY VSAM File format
+       01  HISTORY.
+           05  HISTORY-KEY                   PIC 9(5).
+           05  FILLER                        PIC X VALUE SPACES.
+           05  HISTORY-DATE                  PIC X(8).
+           05  FILLER                        PIC X VALUE SPACES.
+           05  HISTORY-NAME                  PIC X(34).
+           05  FILLER                        PIC X VALUE SPACES.
+           05  HISTORY-PRICE                 PIC X(11).
+           05  FILLER                        PIC X VALUE SPACES.
+           05  HISTORY-SHIPPING              PIC X(11).
+           05  FILLER                        PIC X VALUE SPACES.
+           05  HISTORY-COMMENT               PIC X(14).
+       01  START-KEY                         PIC 9(5) VALUE 99999.
+       01  LINE-NUMBER PIC 99 VALUE 00.
+       01  RESPONSE-CODE  PIC S9(4) COMP.
+       01  DONE-RECORDS PIC XXXX VALUE 'NOPE'.
+      *
+       COPY MCHIST.
+       COPY DFHAID.
+       COPY DFHBMSCA.
+       LINKAGE SECTION.
+      *
+       01  DFHCOMMAREA                       PIC X(14).
+      *
+       PROCEDURE DIVISION.
+       MAIN.
+      *
+           MOVE 'Starting MCAD' TO WTO-MESSAGE.
+           PERFORM WTO.
+           PERFORM HANDLE-AIDS.
+
+           IF EIBCALEN > ZERO THEN
+               MOVE DFHCOMMAREA TO MC-COMMS.
+
+           IF EIBAID EQUAL TO DFHPF3
+                EXEC CICS SEND CONTROL ERASE FREEKB END-EXEC
+                EXEC CICS RETURN END-EXEC
+           ELSE
+           IF EIBAID EQUAL TO DFHPF5
+              MOVE 'Returning to main menu' TO WTO-MESSAGE
+              PERFORM WTO
+               EXEC CICS XCTL
+                   PROGRAM('MCMMENU')
+               END-EXEC
+               EXEC CICS
+                   RETURN TRANSID('MCMM')
+                          COMMAREA(MC-COMMS)
+               END-EXEC
+           ELSE
+           IF EIBAID EQUAL TO DFHPF7
+               PERFORM OPEN-FILE
+               PERFORM MOVE-BACKWARDS 28 TIMES
+               PERFORM CLOSE-FILE.
+
+           PERFORM FILL-FIELDS.
+
+           EXEC CICS SEND MAP('MCHISTR')
+               MAPSET('MCHIST') ERASE
+           END-EXEC
+
+           EXEC CICS
+               RETURN TRANSID('MCHS')
+                      COMMAREA(MC-COMMS)
+           END-EXEC.
+      *
+       OPEN-FILE.
+
+           EXEC CICS STARTBR FILE('HISTORY')
+                RIDFLD(START-RECORD-ID)
+           END-EXEC.
+       CLOSE-FILE.
+
+           EXEC CICS ENDBR 
+               FILE('HISTORY')
+           END-EXEC.
+           
+      *
+       FILL-FIELDS.
+           PERFORM OPEN-FILE.
+
+           MOVE START-RECORD-ID TO WTO-MESSAGE.
+           PERFORM WTO.
+
+      *   Loop through and show 14 lines
+           PERFORM DISPLAY-HISTORY VARYING LINE-NUMBER
+              FROM 1 BY 1 UNTIL LINE-NUMBER IS EQUAL TO 15 OR
+              DONE-RECORDS IS EQUAL TO 'DONE'.
+      *
+       MOVE-BACKWARDS.
+      * Yes, this is a hack but i was too stupid to use READPREV
+           MOVE 'GOING BACKWARDS' TO WTO-MESSAGE.
+           PERFORM WTO.
+           MOVE START-RECORD-ID TO WTO-MESSAGE.
+           PERFORM WTO.
+           IF START-RECORD-ID NOT EQUAL TO 0001
+               EXEC CICS READPREV FILE('HISTORY')
+                   RIDFLD(START-RECORD-ID)
+                   INTO(HISTORY)
+               END-EXEC.
+      *    This does nothing but the compiler complains ending on an IF         
+           MOVE 0 TO RESPONSE-CODE.
+           MOVE 'DONE GOING BACKWARDS' TO WTO-MESSAGE.
+           PERFORM WTO.
+           MOVE START-RECORD-ID TO WTO-MESSAGE.
+           PERFORM WTO.
+      *
+       DISPLAY-HISTORY.
+
+           EXEC CICS READNEXT FILE('HISTORY')
+               RIDFLD(START-RECORD-ID)
+               INTO(HISTORY)
+           END-EXEC
+
+           IF HISTORY-KEY IS EQUAL TO 99999
+      *    We're done here
+               MOVE 'DONE' TO DONE-RECORDS
+           ELSE
+               PERFORM FILL-ROWS-WITH-DATA.
+      *    This does nothing but the compiler complains ending on an IF
+           MOVE 0 TO RESPONSE-CODE.
+      *
+       FILL-ROWS-WITH-DATA.
+           MOVE HISTORY-KEY TO WTO-MESSAGE.
+           PERFORM WTO.
+           MOVE LINE-NUMBER TO WTO-MESSAGE.
+           PERFORM WTO.
+           
+
+           IF LINE-NUMBER IS EQUAL TO 1
+               MOVE HISTORY-KEY TO INDEX1O
+               MOVE HISTORY-DATE TO DATE1O
+               MOVE HISTORY-NAME TO NAME1O
+               MOVE HISTORY-PRICE TO PRICE1O
+               MOVE HISTORY-SHIPPING TO SHIP1O
+           ELSE
+           IF LINE-NUMBER IS EQUAL TO 2
+               MOVE HISTORY-KEY TO INDEX2O
+               MOVE HISTORY-DATE TO DATE2O
+               MOVE HISTORY-NAME TO NAME2O
+               MOVE HISTORY-PRICE TO PRICE2O
+               MOVE HISTORY-SHIPPING TO SHIP2O
+           ELSE
+           IF LINE-NUMBER IS EQUAL TO 3
+               MOVE HISTORY-KEY TO INDEX3O
+               MOVE HISTORY-DATE TO DATE3O
+               MOVE HISTORY-NAME TO NAME3O
+               MOVE HISTORY-PRICE TO PRICE3O
+               MOVE HISTORY-SHIPPING TO SHIP3O
+           ELSE
+           IF LINE-NUMBER IS EQUAL TO 4
+               MOVE HISTORY-KEY TO INDEX4O
+               MOVE HISTORY-DATE TO DATE4O
+               MOVE HISTORY-NAME TO NAME4O
+               MOVE HISTORY-PRICE TO PRICE4O
+               MOVE HISTORY-SHIPPING TO SHIP4O
+           ELSE
+           IF LINE-NUMBER IS EQUAL TO 5
+               MOVE HISTORY-KEY TO INDEX5O
+               MOVE HISTORY-DATE TO DATE5O
+               MOVE HISTORY-NAME TO NAME5O
+               MOVE HISTORY-PRICE TO PRICE5O
+               MOVE HISTORY-SHIPPING TO SHIP5O
+           ELSE
+           IF LINE-NUMBER IS EQUAL TO 6
+               MOVE HISTORY-KEY TO INDEX6O
+               MOVE HISTORY-DATE TO DATE6O
+               MOVE HISTORY-NAME TO NAME6O
+               MOVE HISTORY-PRICE TO PRICE6O
+               MOVE HISTORY-SHIPPING TO SHIP6O
+           ELSE
+           IF LINE-NUMBER IS EQUAL TO 7
+               MOVE HISTORY-KEY TO INDEX7O
+               MOVE HISTORY-DATE TO DATE7O
+               MOVE HISTORY-NAME TO NAME7O
+               MOVE HISTORY-PRICE TO PRICE7O
+               MOVE HISTORY-SHIPPING TO SHIP7O
+           ELSE
+           IF LINE-NUMBER IS EQUAL TO 8
+               MOVE HISTORY-KEY TO INDEX8O
+               MOVE HISTORY-DATE TO DATE8O
+               MOVE HISTORY-NAME TO NAME8O
+               MOVE HISTORY-PRICE TO PRICE8O
+               MOVE HISTORY-SHIPPING TO SHIP8O
+           ELSE
+           IF LINE-NUMBER IS EQUAL TO 9
+               MOVE HISTORY-KEY TO INDEX9O
+               MOVE HISTORY-DATE TO DATE9O
+               MOVE HISTORY-NAME TO NAME9O
+               MOVE HISTORY-PRICE TO PRICE9O
+               MOVE HISTORY-SHIPPING TO SHIP9O
+           ELSE
+           IF LINE-NUMBER IS EQUAL TO 10
+               MOVE HISTORY-KEY TO INDEX10O
+               MOVE HISTORY-DATE TO DATE10O
+               MOVE HISTORY-NAME TO NAME10O
+               MOVE HISTORY-PRICE TO PRICE10O
+               MOVE HISTORY-SHIPPING TO SHIP10O
+           ELSE
+           IF LINE-NUMBER IS EQUAL TO 11
+               MOVE HISTORY-KEY TO INDEX11O
+               MOVE HISTORY-DATE TO DATE11O
+               MOVE HISTORY-NAME TO NAME11O
+               MOVE HISTORY-PRICE TO PRICE11O
+               MOVE HISTORY-SHIPPING TO SHIP11O
+           ELSE
+           IF LINE-NUMBER IS EQUAL TO 12
+               MOVE HISTORY-KEY TO INDEX12O
+               MOVE HISTORY-DATE TO DATE12O
+               MOVE HISTORY-NAME TO NAME12O
+               MOVE HISTORY-PRICE TO PRICE12O
+               MOVE HISTORY-SHIPPING TO SHIP12O
+           ELSE
+           IF LINE-NUMBER IS EQUAL TO 13
+               MOVE HISTORY-KEY TO INDEX13O
+               MOVE HISTORY-DATE TO DATE13O
+               MOVE HISTORY-NAME TO NAME13O
+               MOVE HISTORY-PRICE TO PRICE13O
+               MOVE HISTORY-SHIPPING TO SHIP13O
+           ELSE
+           IF LINE-NUMBER IS EQUAL TO 14
+               MOVE HISTORY-KEY TO INDEX14O
+               MOVE HISTORY-DATE TO DATE14O
+               MOVE HISTORY-NAME TO NAME14O
+               MOVE HISTORY-PRICE TO PRICE14O
+               MOVE HISTORY-SHIPPING TO SHIP14O.
+      *    This does nothing but the compiler complains ending on an IF
+           MOVE 0 TO RESPONSE-CODE.
+      *
+      *    *************************************************************
+      *
+      * WRITES A MESSAGE TO THE CONSOLE
+      *
+       WTO.
+           EXEC CICS WRITE OPERATOR
+               TEXT(WTO-MESSAGE)
+           END-EXEC.
+           MOVE SPACES TO WTO-MESSAGE.
+      *
+      * This function handles all the AIDs
+      *
+       HANDLE-AIDS.
+           IF EIBAID = DFHENTER
+               MOVE '** AID: ENTER' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHCLEAR
+               MOVE '** AID: ENTER' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPA1
+               MOVE '** AID: PA1' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPA2
+               MOVE '** AID: PA2' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPA3
+               MOVE '** AID: PA3' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF1
+               MOVE '** AID: F1' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF2
+               MOVE '** AID: F2' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF3
+               MOVE '** AID: F3' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF4
+               MOVE '** AID: F4' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF5
+               MOVE '** AID: F5' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF6
+               MOVE '** AID: F6' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF7
+               MOVE '** AID: F7' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF8
+               MOVE '** AID: F8' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF9
+               MOVE '** AID: F9' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF10
+               MOVE '** AID: F10' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF11
+               MOVE '** AID: F11' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF12
+               MOVE '** AID: F12' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF13
+               MOVE '** AID: F13' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF14
+               MOVE '** AID: F14' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF15
+               MOVE '** AID: F15' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF16
+               MOVE '** AID: F16' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF17
+               MOVE '** AID: F17' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF18
+               MOVE '** AID: F18' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF19
+               MOVE '** AID: F19' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF20
+               MOVE '** AID: F20' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF21
+               MOVE '** AID: F21' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF22
+               MOVE '** AID: F22' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF23
+               MOVE '** AID: F23' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF24
+               MOVE '** AID: F24' TO WTO-MESSAGE
+               PERFORM WTO.
+      *    This does nothing but the compiler complains ending on an IF
+           MOVE 0 TO RESPONSE-CODE.

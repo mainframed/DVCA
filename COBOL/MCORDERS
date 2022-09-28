@@ -1,0 +1,469 @@
+      *///////////////////////////////////////////////////////////////
+      * Mel's Cargo
+      * MCORDERS:
+      *   Display and order supplies
+      *
+      * Vulnerabilities:
+      *   Though the display field is locked you can change the price
+      *   of any item by unlocking the screen. This is due to us using
+      *   the MAP setting `FSET` which treats the output as modified.
+      * For Example:
+      *    NAME    DFHMDF POS=(07,20),
+      *            LENGTH=35,
+      *            COLOR=NEUTRAL,
+      *            ATTRB=(NORM,PROT,FSET)
+      *   Some items have been banned from being purchased (booze and idol)
+      *   But you can still buy them if you change the hidden field to Y
+      *
+      * AUTHOR:
+      *   Philip Young aka Soldier of FORTRAN
+      *
+      * 09/17/2022
+      * License GPL v3
+      *///////////////////////////////////////////////////////////////
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID.   MCORDERS.
+       AUTHOR. SOLDIER OF FORTRAN.
+       INSTALLATION. DAMN VULNERABLE.
+       DATE-WRITTEN. 09/17/2022.
+       SECURITY. CONFIDENTIAL.
+       ENVIRONMENT DIVISION.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+      * COMM AREA
+       01  MC-COMMS.
+           05  PURCHASE                             PIC X(1).
+               88  BUYNOW                           VALUE 'Y'.
+               88  NOBUY                            VALUE 'N'.
+           05 START-RECORD-ID PIC 9(5) VALUE 00001.
+           05  FILLER PIC X(2).
+      * WTO MESSAGE STORAGE
+       01  WTO-MESSAGE PIC X(38) VALUE SPACES.
+       01  MESSAGES.
+           05 TITLES                   PIC X(14) VALUE 'Product Name: '.
+           05 PROD-NAME                PIC X(34).
+       01  RESPONSE-CODE  PIC S9(4) COMP.
+      * Used for recording the time
+       01  WS-ABSTIME          PIC S9(15) COMP-3. 
+      * VSAM Record Layout
+       01  PRODUCT.
+           05  ITEMNUM                       PIC X(5).
+           05  FILLER                        PIC X VALUE SPACES. 
+           05  PURCHASABLE                   PIC X.
+           05  FILLER                        PIC X VALUE SPACES.
+           05  DESCRIPTION                   PIC X(34).
+           05  FILLER                        PIC X VALUE SPACES.
+           05  PRODUCT-PRICE.
+               10  PRODUCT-INTEGER-PART     PIC X(6).
+               10  PRODUCT-DEC-POINT        PIC X.
+               10  PRODUCT-DECIMAL-PART     PIC X(2).
+           05  FILLER                        PIC X VALUE SPACES.
+           05  PRODUCT-SHIPPING.
+               10  SHIPPING-INTEGER-PART     PIC X(6).
+               10  SHIPPING-DEC-POINT        PIC X.
+               10  SHIPPING-DECIMAL-PART     PIC X(2).
+           05  FILLER                        PIC X VALUE SPACES.
+           05  COMMENT                       PIC X(14).
+       01  HISTORY.
+           05  HISTORY-KEY                   PIC 9(5) VALUE 00001. 
+           05  FILLER                        PIC X VALUE SPACES.
+           05  HISTORY-DATE                  PIC X(8).
+           05  FILLER                        PIC X VALUE SPACES.
+           05  HISTORY-NAME                  PIC X(34).
+           05  FILLER                        PIC X VALUE SPACES.
+           05  HISTORY-PRICE                 PIC X(11).
+           05  FILLER                        PIC X VALUE SPACES.
+           05  HISTORY-SHIPPING              PIC X(11).
+           05  FILLER                        PIC X VALUE SPACES.
+           05  HISTORY-COMMENT               PIC X(14).
+       01  START-KEY                         PIC 9(5) VALUE 99999.           
+      * Edit to display the amount
+       01  THE-AMOUNT                       PIC S9(6)V9(2).
+       01  FILLER REDEFINES THE-AMOUNT.
+           05  THE-AMOUNT-INTEGER           PIC X(6).
+           05  THE-AMOUNT-DECIMAL           PIC S9(2).
+      * COBOL Edits for PRICE and SHIPPING
+       01  PRICE                             PIC $ZZZ,ZZ9.99.
+       01  SHIPPING                          PIC $ZZZ,ZZ9.99.
+      *
+       COPY MCORDER.
+       COPY DFHAID.
+       COPY DFHBMSCA.
+       LINKAGE SECTION.
+      *
+       01  DFHCOMMAREA                       PIC X(14).
+      *
+       PROCEDURE DIVISION.
+       MAIN.
+      *
+           PERFORM HANDLE-AIDS.
+           MOVE 'Starting MCORDERS' TO WTO-MESSAGE.
+           PERFORM WTO.
+           IF EIBCALEN > ZERO THEN
+               MOVE DFHCOMMAREA TO MC-COMMS.
+
+           IF EIBCALEN EQUAL TO ZERO
+      *        MOVE 'Displaying first item' TO WTO-MESSAGE
+              PERFORM START-RECORD
+              PERFORM FILL-FIELDS
+      * MAP IS DFHMDI FROM THE MAPSET
+      * MAPSET IS WHAT WE SET IN THE PCT (WITH CEDA)
+              EXEC CICS SEND MAP('MCORDERM')
+                  MAPSET('MCORDER') ERASE
+              END-EXEC
+              MOVE 'Done Showing MCORDERM' TO WTO-MESSAGE
+              PERFORM WTO
+           ELSE
+           IF EIBAID EQUAL TO DFHPF3
+                EXEC CICS SEND CONTROL ERASE FREEKB END-EXEC
+                EXEC CICS RETURN END-EXEC
+           ELSE
+           IF EIBAID EQUAL TO DFHPF8
+              MOVE 'Showing next item' TO WTO-MESSAGE
+              PERFORM WTO
+              PERFORM GET-NEXT-RECORD
+              PERFORM FILL-FIELDS
+              EXEC CICS SEND MAP('MCORDERM')
+                  MAPSET('MCORDER') ERASE
+              END-EXEC
+           ELSE
+           IF EIBAID EQUAL TO DFHPF7
+              MOVE 'Showing prev item' TO WTO-MESSAGE
+              PERFORM WTO
+              PERFORM GET-PREV-RECORD
+              PERFORM FILL-FIELDS
+              EXEC CICS SEND MAP('MCORDERM')
+                  MAPSET('MCORDER') ERASE
+              END-EXEC
+           ELSE
+           IF EIBAID EQUAL TO DFHPF5
+              MOVE 'Returning to main menu' TO WTO-MESSAGE
+              PERFORM WTO
+               EXEC CICS XCTL
+                   PROGRAM('MCMMENU')
+               END-EXEC
+           ELSE
+           IF EIBAID EQUAL TO DFHENTER
+              PERFORM GET-INPUT
+              EXEC CICS SEND MAP('MCORDERM')
+                  MAPSET('MCORDER') ERASE
+              END-EXEC.
+
+           EXEC CICS
+               RETURN TRANSID('MCOR')
+                      COMMAREA(MC-COMMS)
+           END-EXEC.
+       MC-EXIT.
+           GOBACK.
+      *
+      * Gets a record from KICKS.DVCA.VSAM
+      *
+       START-RECORD.
+           MOVE 'RECORD FROM KICKS.DVCA.PRODUCTS.VSAM' TO WTO-MESSAGE.
+           PERFORM WTO.
+
+           EXEC CICS STARTBR FILE('PRODUCTS')
+                RIDFLD(START-RECORD-ID)
+           END-EXEC.
+
+           EXEC CICS READNEXT FILE('PRODUCTS')
+               RIDFLD(START-RECORD-ID)
+               INTO(PRODUCT)
+           END-EXEC.
+
+           MOVE DESCRIPTION TO PROD-NAME.
+           MOVE MESSAGES TO WTO-MESSAGE.
+           PERFORM WTO.
+      *
+      *
+      * Gets a record from KICKS.DVCA.VSAM
+      *
+       GET-NEXT-RECORD.
+
+           ADD 1 TO START-RECORD-ID.
+
+           MOVE 'RECORD FROM KICKS.DVCA.PRODUCTS.VSAM' TO WTO-MESSAGE.
+           PERFORM WTO.
+           MOVE START-RECORD-ID TO WTO-MESSAGE.
+           PERFORM WTO.
+
+           EXEC CICS STARTBR FILE('PRODUCTS')
+                RIDFLD(START-RECORD-ID)
+           END-EXEC.
+
+           EXEC CICS READNEXT FILE('PRODUCTS')
+               RIDFLD(START-RECORD-ID)
+               INTO(PRODUCT)
+           END-EXEC.
+
+           MOVE DESCRIPTION TO PROD-NAME.
+           MOVE MESSAGES TO WTO-MESSAGE.
+           PERFORM WTO.
+           MOVE ITEMNUM TO WTO-MESSAGE.
+           PERFORM WTO.
+      *
+      *
+      * Gets a record from KICKS.DVCA.VSAM
+      *
+       GET-PREV-RECORD.
+
+           IF START-RECORD-ID > 1
+               SUBTRACT 1 FROM START-RECORD-ID.
+
+           MOVE 'RECORD FROM KICKS.DVCA.PRODUCTS.VSAM' TO WTO-MESSAGE.
+           PERFORM WTO.
+           MOVE START-RECORD-ID TO WTO-MESSAGE.
+           PERFORM WTO.
+
+           EXEC CICS STARTBR FILE('PRODUCTS')
+                RIDFLD(START-RECORD-ID)
+           END-EXEC.
+
+           EXEC CICS READPREV FILE('PRODUCTS')
+               RIDFLD(START-RECORD-ID)
+               INTO(PRODUCT)
+           END-EXEC.
+
+
+           MOVE DESCRIPTION TO PROD-NAME.
+           MOVE MESSAGES TO WTO-MESSAGE.
+           PERFORM WTO.
+           MOVE ITEMNUM TO WTO-MESSAGE.
+           PERFORM WTO.
+      *
+      * Fills the fields in the MCORDER MAP
+       FILL-FIELDS.
+           MOVE 'Filling MAP with record information' TO WTO-MESSAGE.
+           PERFORM WTO.
+           MOVE SPACES TO NUMBERO.
+           MOVE SPACES TO NAMEO.
+           MOVE SPACES TO PRICEO.
+           MOVE SPACES TO SHIPO.
+           MOVE SPACES TO COMMENTO.
+           MOVE SPACES TO CANBUYO.
+           MOVE PRODUCT-INTEGER-PART TO THE-AMOUNT-INTEGER.
+           MOVE PRODUCT-DECIMAL-PART TO THE-AMOUNT-DECIMAL.
+           MOVE THE-AMOUNT TO PRICE.
+           MOVE SHIPPING-INTEGER-PART TO THE-AMOUNT-INTEGER.
+           MOVE SHIPPING-DECIMAL-PART TO THE-AMOUNT-DECIMAL.
+           MOVE THE-AMOUNT TO SHIPPING.
+           MOVE ITEMNUM TO NUMBERO.
+           MOVE DESCRIPTION TO NAMEO.
+           MOVE PRICE TO PRICEO.
+           MOVE SHIPPING TO SHIPO.
+           MOVE COMMENT TO COMMENTO.
+           MOVE PURCHASABLE TO CANBUYO.
+      ******************************************************************
+
+      *
+       GET-INPUT.
+      * Get the option the user enters
+
+           MOVE 'Getting Input from User.' TO WTO-MESSAGE.
+           PERFORM WTO.
+           EXEC CICS
+               RECEIVE MAP('MCORDERM')
+                       MAPSET('MCORDER')
+                       INTO(MCORDERMI) ASIS
+           END-EXEC.
+
+           MOVE CANBUYI TO WTO-MESSAGE.
+           PERFORM WTO.
+
+           IF BUYI IS EQUAL TO 'Y' AND CANBUYI IS EQUAL TO 'Y'
+              PERFORM BUY-IT
+           ELSE
+           IF CANBUYI IS EQUAL TO 'N'
+              MOVE 'DENIED   ' TO BOUGHT1O
+              MOVE ' DENIED  ' TO BOUGHT2O
+              MOVE '  DENIED ' TO BOUGHT3O
+           ELSE
+              PERFORM START-RECORD
+              PERFORM FILL-FIELDS.
+      *    This does nothing but the compiler complains ending on an IF
+           MOVE 0 TO RESPONSE-CODE.
+      *
+       BUY-IT.
+           MOVE SPACES TO TITLES.
+           MOVE SPACES TO PROD-NAME.
+           MOVE 'Bought Item:   ' TO TITLES.
+           MOVE NAMEI TO PROD-NAME.
+           MOVE MESSAGES TO WTO-MESSAGE.
+           PERFORM WTO.
+
+           MOVE 'Opening HISTORY VSAM FILE' TO WTO-MESSAGE.
+           PERFORM WTO.
+      *    Isn't COBOL and VSAM FUN?
+      *    Look at all this shit I need just to get the last record 
+           MOVE 99999 TO START-KEY.
+
+           EXEC CICS STARTBR FILE('HISTORY')
+                RIDFLD(START-KEY) GTEQ
+           END-EXEC.
+           EXEC CICS READPREV FILE('HISTORY')
+               RIDFLD(START-KEY)
+               INTO(HISTORY)
+           END-EXEC.
+           EXEC CICS READPREV FILE('HISTORY')
+               RIDFLD(START-KEY)
+               INTO(HISTORY)
+               RESP(RESPONSE-CODE)
+           END-EXEC.
+      *    Weeee KSDS VSAM is fun
+           IF RESPONSE-CODE = DFHRESP(ENDFILE) MOVE 00000 TO START-KEY.
+           ADD 1 TO START-KEY.
+           MOVE START-KEY TO HISTORY-KEY.
+           MOVE NAMEI TO HISTORY-NAME.
+           MOVE PRICEI TO HISTORY-PRICE.
+           MOVE SHIPI TO HISTORY-SHIPPING.
+      *    Now we need the date to add to the record
+           MOVE SPACES TO HISTORY-DATE.
+           EXEC CICS ASKTIME ABSTIME(WS-ABSTIME) END-EXEC.
+           EXEC CICS FORMATTIME ABSTIME(WS-ABSTIME)
+             MMDDYY(HISTORY-DATE) DATESEP('/')
+           END-EXEC.
+
+      
+           MOVE 'Writting record to HISTORY' TO WTO-MESSAGE.
+           PERFORM WTO.
+
+           EXEC CICS WRITE DATASET('HISTORY') 
+               FROM(HISTORY) 	RIDFLD(START-KEY)
+           END-EXEC
+
+           MOVE 'PURCHASED' TO BOUGHT1O.
+           MOVE 'PURCHASED' TO BOUGHT2O.
+           MOVE 'PURCHASED' TO BOUGHT3O.
+           
+
+
+      ******************************************************************
+      *
+      * WRITES A MESSAGE TO THE CONSOLE
+      *
+       WTO.
+           EXEC CICS WRITE OPERATOR
+               TEXT(WTO-MESSAGE)
+           END-EXEC.
+           MOVE SPACES TO WTO-MESSAGE.
+      *
+      * This function handles all the AIDs
+      *
+       HANDLE-AIDS.
+           IF EIBAID = DFHENTER
+               MOVE '** AID: ENTER' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHCLEAR
+               MOVE '** AID: ENTER' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPA1
+               MOVE '** AID: PA1' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPA2
+               MOVE '** AID: PA2' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPA3
+               MOVE '** AID: PA3' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF1
+               MOVE '** AID: F1' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF2
+               MOVE '** AID: F2' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF3
+               MOVE '** AID: F3' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF4
+               MOVE '** AID: F4' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF5
+               MOVE '** AID: F5' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF6
+               MOVE '** AID: F6' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF7
+               MOVE '** AID: F7' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF8
+               MOVE '** AID: F8' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF9
+               MOVE '** AID: F9' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF10
+               MOVE '** AID: F10' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF11
+               MOVE '** AID: F11' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF12
+               MOVE '** AID: F12' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF13
+               MOVE '** AID: F13' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF14
+               MOVE '** AID: F14' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF15
+               MOVE '** AID: F15' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF16
+               MOVE '** AID: F16' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF17
+               MOVE '** AID: F17' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF18
+               MOVE '** AID: F18' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF19
+               MOVE '** AID: F19' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF20
+               MOVE '** AID: F20' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF21
+               MOVE '** AID: F21' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF22
+               MOVE '** AID: F22' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF23
+               MOVE '** AID: F23' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF24
+               MOVE '** AID: F24' TO WTO-MESSAGE
+               PERFORM WTO.
+      *    This does nothing but the compiler complains ending on an IF
+           MOVE 0 TO RESPONSE-CODE.

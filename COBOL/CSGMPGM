@@ -1,0 +1,93 @@
+      *///////////////////////////////////////////////////////////////
+      * KICKS CSGM Replacement
+      * DOGEMAIN:
+      *   Displays the CICS EBCDIC art
+      *
+      * AUTHOR:
+      *   Philip Young aka Soldier of FORTRAN
+      *
+      * 09/17/2022
+      * License GPL v3
+      *///////////////////////////////////////////////////////////////
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID.   CSGMPGM.
+       AUTHOR. SOLDIER OF FORTRAN.
+       INSTALLATION. DAMN VULNERABLE.
+       DATE-WRITTEN. 09/17/2022.
+       SECURITY. CONFIDENTIAL.
+       ENVIRONMENT DIVISION.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       77  WS-ABSTIME          PIC S9(15) COMP-3.
+       77  RC                  PIC S9(4)  COMP.
+       01  WTO-MESSAGE PIC X(38) VALUE SPACES.
+       01  WS-COMM.
+           05  ISEED           PIC S9(8) COMP.
+           05  COLORS OCCURS 5 PIC X.
+           05  HILITE OCCURS 5 PIC X.
+      *
+       COPY CSGMMAP.
+       COPY DFHAID.
+       COPY DFHBMSCA.
+       LINKAGE SECTION.
+      *
+       01  DFHCOMMAREA                       PIC X(14).
+      *
+       PROCEDURE DIVISION.
+       CSGM-MAIN.
+           MOVE 'Displaying CSGM transaction' TO WTO-MESSAGE.
+           PERFORM CSGM-WTO.
+           MOVE EIBAID TO WTO-MESSAGE.
+           PERFORM CSGM-WTO.
+           IF EIBAID = DFHPF1
+      *         EXEC KICKS XCTL PROGRAM('CSGMPGM') END-EXEC
+                MOVE 'F1' TO WTO-MESSAGE
+                PERFORM CSGM-WTO
+           ELSE
+           IF EIBAID = DFHPA2
+                MOVE 'PA2 Caught - Ignore' TO WTO-MESSAGE
+                PERFORM CSGM-WTO.
+
+           IF EIBCALEN = 0
+                PERFORM SHOW-CSGM
+           ELSE
+           IF EIBCALEN NOT = 14
+               EXEC CICS ABEND ABCODE('COMM') END-EXEC
+           ELSE
+                MOVE DFHCOMMAREA TO WS-COMM.
+
+           IF EIBAID = DFHCLEAR OR DFHPF3
+                EXEC CICS SEND CONTROL ERASE FREEKB END-EXEC
+                EXEC CICS RETURN END-EXEC.
+
+           IF EIBAID EQUAL TO DFHENTER PERFORM SHOW-CSGM.
+
+           EXEC CICS
+               RETURN TRANSID('CSGM')
+                      COMMAREA(WS-COMM)
+           END-EXEC.
+
+       SHOW-CSGM.
+           PERFORM FILL-IN-MAP.
+           EXEC CICS
+               SEND MAP('CSGMAP')
+                       MAPSET('CSGMMAP')
+                       ERASE
+           END-EXEC.
+      *
+       FILL-IN-MAP SECTION.
+      *    FILL IN THE TIME AND DATE USING ASKTIME/FORMATTIME
+           EXEC CICS ASKTIME ABSTIME(WS-ABSTIME) END-EXEC.
+           EXEC CICS FORMATTIME ABSTIME(WS-ABSTIME)
+             TIME(TIMEO) TIMESEP(':')
+           END-EXEC.
+           EXEC CICS FORMATTIME ABSTIME(WS-ABSTIME)
+             MMDDYY(DATEO) DATESEP('/')
+           END-EXEC.
+      *
+      * WRITES A MESSAGE TO THE CONSOLE
+       CSGM-WTO SECTION.
+           EXEC CICS WRITE OPERATOR
+               TEXT(WTO-MESSAGE)
+           END-EXEC.
+           MOVE SPACES TO WTO-MESSAGE.
