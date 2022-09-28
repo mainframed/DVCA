@@ -114,6 +114,9 @@
               MOVE 'Done Showing MCORDERM' TO WTO-MESSAGE
               PERFORM WTO
            ELSE
+           IF EIBAID = DFHPF1
+                EXEC KICKS XCTL PROGRAM('MCHELP') END-EXEC
+           ELSE
            IF EIBAID EQUAL TO DFHPF3
                 EXEC CICS SEND CONTROL ERASE FREEKB END-EXEC
                 EXEC CICS RETURN END-EXEC

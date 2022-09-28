@@ -69,6 +69,9 @@
               PERFORM GET-ADDRESS-RECORD
               PERFORM FILL-FIELDS
            ELSE
+           IF EIBAID = DFHPF1
+                EXEC KICKS XCTL PROGRAM('MCHELP') END-EXEC
+           ELSE
            IF EIBAID EQUAL TO DFHPF3
                 EXEC CICS SEND CONTROL ERASE FREEKB END-EXEC
                 EXEC CICS RETURN END-EXEC
