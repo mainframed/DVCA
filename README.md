@@ -5,8 +5,6 @@ MVS 3.8j KICKS) application that is just loaded with vulnerabilities.
 
 This repo contains the source code for running DVCA on MVS/CE KICKS.
 
-[screenshot]
-
 ## Running DVCA
 
 A Docker container of the most recent release is available at https://hub.docker.com/u/mainframed767/dvca.
@@ -14,8 +12,12 @@ A Docker container of the most recent release is available at https://hub.docker
 Once you've deployed the container, logon with the user `DVCA` and a password
 of `DVCA`. This will automatically launch KICKS and DVCA for you. 
 
+![CSGM](screenshots/CSGM.png?raw=true "CSGM")
+
 At the CSGM screen press `F3` or `CLEAR` to clear the screen and enter `MCGM`
 to access the vulnerable application. 
+
+![MCGM](screenshots/MCGM.png?raw=true "MCGM")
 
 Be sure to be using a tool like BIRP to be able to find the vulnerabilities. 
 
