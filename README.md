@@ -7,10 +7,11 @@ This repo contains the source code for running DVCA on MVS/CE KICKS.
 
 ## Running DVCA
 
-A Docker container of the most recent release is available at https://hub.docker.com/u/mainframed767/dvca.
+A Docker container of the most recent release is available at https://hub.docker.com/r/mainframed767/dvca.
 
 Once you've deployed the container, logon with the user `DVCA` and a password
-of `DVCA`. This will automatically launch KICKS and DVCA for you. 
+of `DVCA`. This will automatically launch KICKS and DVCA for you. If you're not
+using the container and installed manually run the command `DVCA` after logon.
 
 ![CSGM](screenshots/CSGM.png?raw=true "CSGM")
 

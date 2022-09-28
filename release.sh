@@ -32,6 +32,10 @@ done
 
 
 for i in COBOL/*; do
+  if [[ "$i" == 'COBOL/README.MD' ]]; then
+    continue
+  fi  
+
     m=${i%.*}
     progname=${m##*/}
 
@@ -61,6 +65,9 @@ done
 
 
 for i in TABLES/*; do
+  if [[ "$i" == 'TABLES/README.MD' ]]; then
+    continue
+  fi  
     m=${i%.*}
     tablename=${m##*/}
 
