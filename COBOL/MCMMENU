@@ -22,13 +22,12 @@
        ENVIRONMENT DIVISION.
        DATA DIVISION.
        WORKING-STORAGE SECTION.
-       01  MC-COMMS.
-           05  MENU-FLAG      PIC X(2).
-               88  OPTION1    VALUE '1'.
-               88  OPTION2    VALUE '2'.
-               88  OPTION3    VALUE '3'.
-               88  OPTION99   VALUE '99'.
-           05  FILLER PIC X(9).
+       01  MC-COMMS PIC X(14) VALUE SPACES.
+       01  MENU-FLAG      PIC X(2).
+           88  OPTION1    VALUE '1'.
+           88  OPTION2    VALUE '2'.
+           88  OPTION3    VALUE '3'.
+           88  OPTION99   VALUE '99'.
        01  WTO-MESSAGE        PIC X(38) VALUE SPACES.
        01  RESPONSE-CODE      PIC S9(4) COMP.
        01  START-RECORD-ID    PIC 9(5) VALUE 00001.
@@ -48,6 +47,8 @@
        PROCEDURE DIVISION.
        MAIN.
            PERFORM HANDLE-AIDS.
+           MOVE 'Mels Cargo Main Menu' TO WTO-MESSAGE.
+           PERFORM WTO.
 
            IF EIBAID = DFHPF1
                 EXEC KICKS XCTL PROGRAM('MCHELP') END-EXEC
@@ -61,17 +62,16 @@
                 PERFORM WTO
                 EXEC CICS XCTL PROGRAM('SECRET') END-EXEC.
 
-           IF EIBCALEN > ZERO THEN
-               MOVE DFHCOMMAREA TO MC-COMMS
-               MOVE 'Mels Cargo Main Menu' TO WTO-MESSAGE
-               PERFORM WTO
-           ELSE
-           IF EIBCALEN EQUAL TO ZERO
-               PERFORM SHOW-MENU.
-
            IF EIBAID EQUAL TO DFHENTER
                    PERFORM RECEIVE-OPTION
                    PERFORM PARSE-OPTION.
+
+           IF EIBCALEN > ZERO THEN
+               MOVE DFHCOMMAREA TO MC-COMMS
+               PERFORM SHOW-MENU
+           ELSE
+           IF EIBCALEN EQUAL TO ZERO
+               PERFORM SHOW-MENU.
 
            EXEC CICS
                RETURN TRANSID('MCMM')

@@ -19,7 +19,7 @@ MCORDERM  DFHMDI SIZE=(24,80),                                         X
                LENGTH=04,                                              X
                COLOR=BLUE,                                             X
                ATTRB=(NORM,PROT),                                      X
-               INITIAL='MCSM'
+               INITIAL='MCOR'
 *
          DFHMDF POS=(02,30),                                           X
                LENGTH=04,                                              X

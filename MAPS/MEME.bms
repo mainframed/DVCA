@@ -1,0 +1,87 @@
+* HLASM BMS Map 
+* Generated using ansi_to_bms.py by Philip Young
+* Generated on: 2022-09-27 20:57:33
+CICSMAP  TITLE 'Meme Map'
+         PRINT NOGEN
+MEME  DFHMSD TYPE=&SYSPARM,                                            X
+               MODE=INOUT,                                             X
+               LANG=COBOL,                                             X
+               DSATTS=(COLOR,HILIGHT),MAPATTS=(COLOR,HILIGHT),         X
+               TIOAPFX=YES,                                            X
+               CTRL=FREEKB  
+* Below is the MAP name, you use this in COBOL to reference the MAP
+* You could have more than one map, hence size/line/column
+MEMEMAP     DFHMDI SIZE=(24,80),                                       X
+               LINE=1,                                                 X
+               COLUMN=1
+*
+         DFHMDF POS=(04,06),                                           X
+               LENGTH=06,                                              X
+               COLOR=YELLOW,                                           X
+               ATTRB=(NORM,PROT),                                      X
+               INITIAL=' /\_/\'
+*
+         DFHMDF POS=(05,06),                                           X
+               LENGTH=07,                                              X
+               COLOR=YELLOW,                                           X
+               ATTRB=(NORM,PROT),                                      X
+               INITIAL='((@v@))'
+*
+         DFHMDF POS=(06,06),                                           X
+               LENGTH=07,                                              X
+               COLOR=YELLOW,                                           X
+               ATTRB=(NORM,PROT),                                      X
+               INITIAL='():::()'
+*
+         DFHMDF POS=(07,06),                                           X
+               LENGTH=06,                                              X
+               COLOR=YELLOW,                                           X
+               ATTRB=(NORM,PROT),                                      X
+               INITIAL=' VV-VV'
+*
+         DFHMDF POS=(05,14),                                           X
+               LENGTH=18,                                              X
+               COLOR=TURQUOISE,                                        X
+               ATTRB=(NORM,PROT),                                      X
+               INITIAL='Soldier of FORTRAN'
+*
+         DFHMDF POS=(06,14),                                           X
+               LENGTH=14,                                              X
+               COLOR=BLUE,                                             X
+               ATTRB=(NORM,PROT),                                      X
+               INITIAL='@mainframed767'
+*
+         DFHMDF POS=(09,15),                                           X
+               LENGTH=33,                                              X
+               COLOR=WHITE,                                            X
+               ATTRB=(NORM,PROT),                                      X
+               INITIAL='I will let out a bit of a secret.'
+*
+         DFHMDF POS=(11,15),                                           X
+               LENGTH=56,                                              X
+               COLOR=WHITE,                                            X
+               ATTRB=(NORM,PROT),                                      X
+               INITIAL='I have been running a full IBM System/370 MainfX
+               rame on a'
+*
+         DFHMDF POS=(12,15),                                           X
+               LENGTH=36,                                              X
+               COLOR=WHITE,                                            X
+               ATTRB=(NORM,PROT),                                      X
+               INITIAL='$20 Raspberry Pi Zero for ~5 months.'
+*
+         DFHMDF POS=(14,15),                                           X
+               LENGTH=55,                                              X
+               COLOR=WHITE,                                            X
+               ATTRB=(NORM,PROT),                                      X
+               INITIAL='Thousands of lines of COBOL and HLASM running fX
+               lawless.'
+*
+         DFHMDF POS=(16,15),                                           X
+               LENGTH=45,                                              X
+               COLOR=WHITE,                                            X
+               ATTRB=(NORM,PROT),                                      X
+               INITIAL='Tested an entire banks mainframe COBOL on it.'
+*
+         DFHMSD TYPE=FINAL
+         END

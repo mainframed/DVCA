@@ -27,19 +27,19 @@ MENUMAP  DFHMDI SIZE=(24,80),                                          X
                ATTRB=(NORM,PROT),                                      X
                INITIAL='Mels'
 *
-         DFHMDF POS=(02,35),                                           X
+         DFHMDF POS=(02,34),                                           X
                LENGTH=05,                                              X
                COLOR=YELLOW,                                           X
                ATTRB=(NORM,PROT),                                      X
                INITIAL='Cargo'
 *
-         DFHMDF POS=(02,41),                                           X
+         DFHMDF POS=(02,40),                                           X
                LENGTH=04,                                              X
                COLOR=BLUE,                                             X
                ATTRB=(NORM,PROT),                                      X
                INITIAL='Main'
 *
-         DFHMDF POS=(02,46),                                           X
+         DFHMDF POS=(02,45),                                           X
                LENGTH=04,                                              X
                COLOR=BLUE,                                             X
                ATTRB=(NORM,PROT),                                      X
@@ -561,7 +561,7 @@ SELECT   DFHMDF POS=(20,17),                                           X
                LENGTH=03,                                              X
                COLOR=BLUE,                                             X
                ATTRB=(NORM,PROT),                                      X
-               INITIAL='PF2'
+               INITIAL='PF5'
 *
          DFHMDF POS=(22,18),                                           X
                LENGTH=01,                                              X
@@ -573,7 +573,7 @@ SELECT   DFHMDF POS=(20,17),                                           X
                LENGTH=04,                                              X
                COLOR=BLUE,                                             X
                ATTRB=(NORM,PROT),                                      X
-               INITIAL='Main'
+               INITIAL='This'
 *
          DFHMDF POS=(22,26),                                           X
                LENGTH=03,                                              X

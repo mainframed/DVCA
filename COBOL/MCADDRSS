@@ -147,7 +147,7 @@
 
            IF PINI IS EQUAL TO SUPERVISOR-CODE PERFORM UPDATE-ADDRESS
            ELSE
-               MOVE 'INVALID SUPERVISODE CODE' TO MESSAGEO.
+               MOVE 'INVALID SUPERVISOR CODE' TO MESSAGEO.
       *    This does nothing but the compiler complains ending on an IF
            MOVE 0 TO RESPONSE-CODE.
       *

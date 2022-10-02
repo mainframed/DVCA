@@ -19,7 +19,7 @@ MCADDRSS DFHMDI SIZE=(24,80),                                          X
                LENGTH=04,                                              X
                COLOR=BLUE,                                             X
                ATTRB=(NORM,PROT),                                      X
-               INITIAL='MCSA'
+               INITIAL='MCAD'
 *
          DFHMDF POS=(02,26),                                           X
                LENGTH=04,                                              X

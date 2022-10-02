@@ -19,7 +19,7 @@ CSGMAP   DFHMDI SIZE=(24,80),                                          X
                LENGTH=04,                                              X
                COLOR=BLUE,                                             X
                ATTRB=(NORM,PROT),                                      X
-               INITIAL='CICS'
+               INITIAL='    '
 *
          DFHMDF POS=(01,06),                                           X
                LENGTH=10,                                              X
