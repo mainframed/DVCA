@@ -26,7 +26,13 @@
            05 FILLER PIC X(14).
        01  RESPONSE-CODE  PIC S9(4) COMP.
       * WTO MESSAGE STORAGE
-       01  WTO-MESSAGE PIC X(38) VALUE SPACES.
+       01  CONSOLE-MESSAGE.
+           05  HEAD PIC X(5) VALUE 'MELSC'.
+           05  MSG-NUM PIC 9(3) VALUE 000.
+           05  FILLER PIC X VALUE ' '.
+           05  TRANS-ID       PIC X(4).
+           05  FILLER PIC X(3) VALUE ' - '.
+           05  WTO-MESSAGE    PIC X(47) VALUE SPACES.
       *
        COPY HELPMAP.
        COPY DFHAID.
@@ -37,6 +43,7 @@
       *
        PROCEDURE DIVISION.
        MAIN.
+           MOVE 'HELP' TO TRANS-ID.
       *
            PERFORM HANDLE-AIDS.
 
@@ -69,7 +76,7 @@
       *
        WTO.
            EXEC CICS WRITE OPERATOR
-               TEXT(WTO-MESSAGE)
+               TEXT(CONSOLE-MESSAGE)
            END-EXEC.
            MOVE SPACES TO WTO-MESSAGE.
       *

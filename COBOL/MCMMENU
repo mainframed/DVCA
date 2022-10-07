@@ -28,7 +28,13 @@
            88  OPTION2    VALUE '2'.
            88  OPTION3    VALUE '3'.
            88  OPTION99   VALUE '99'.
-       01  WTO-MESSAGE        PIC X(38) VALUE SPACES.
+       01  CONSOLE-MESSAGE.
+           05  HEAD PIC X(5) VALUE 'MELSC'.
+           05  MSG-NUM PIC 9(3) VALUE 000.
+           05  FILLER PIC X VALUE ' '.
+           05  TRANS-ID       PIC X(4).
+           05  FILLER PIC X(3) VALUE ' - '.
+           05  WTO-MESSAGE    PIC X(47) VALUE SPACES.
        01  RESPONSE-CODE      PIC S9(4) COMP.
        01  START-RECORD-ID    PIC 9(5) VALUE 00001.
        01  HISTORY            PIC X(80).
@@ -46,6 +52,7 @@
       *
        PROCEDURE DIVISION.
        MAIN.
+           MOVE 'MCMM' TO TRANS-ID.
            PERFORM HANDLE-AIDS.
            MOVE 'Mels Cargo Main Menu' TO WTO-MESSAGE.
            PERFORM WTO.
@@ -56,13 +63,13 @@
            IF EIBAID = DFHCLEAR OR DFHPF3
                 EXEC CICS SEND CONTROL ERASE FREEKB END-EXEC
                 EXEC CICS RETURN END-EXEC
-           ELSE 
+           ELSE
            IF EIBAID = DFHPA3
                 MOVE 'Showing secret menu' TO WTO-MESSAGE
                 PERFORM WTO
                 EXEC CICS XCTL PROGRAM('SECRET') END-EXEC.
 
-           IF EIBAID EQUAL TO DFHENTER
+           IF EIBAID EQUAL TO DFHENTER AND EIBCALEN > ZERO THEN
                    PERFORM RECEIVE-OPTION
                    PERFORM PARSE-OPTION.
 
@@ -138,34 +145,34 @@
            EXEC CICS STARTBR FILE('HISTORY')
                 RIDFLD(START-RECORD-ID)
            END-EXEC.
-           
+
            PERFORM DELETE-RECORD UNTIL START-RECORD-ID EQUAL TO 99999.
 
-           EXEC CICS ENDBR 
+           EXEC CICS ENDBR
                FILE('HISTORY')
            END-EXEC.
-           
+
            MOVE DELETE-MESSAGE TO MESSAGEO.
 
            PERFORM SHOW-MENU.
 
        DELETE-RECORD.
-           EXEC CICS READNEXT 
-               FILE('HISTORY') 
+           EXEC CICS READNEXT
+               FILE('HISTORY')
                RIDFLD(START-RECORD-ID)
                INTO(HISTORY)
            END-EXEC.
 
            IF START-RECORD-ID NOT EQUAL TO 99999
-               EXEC CICS DELETE 
-                   FILE('HISTORY') 
-                   RIDFLD(START-RECORD-ID)               
+               EXEC CICS DELETE
+                   FILE('HISTORY')
+                   RIDFLD(START-RECORD-ID)
                END-EXEC
                ADD 1 TO DELETED-RECORDS
                MOVE DELETE-MESSAGE TO WTO-MESSAGE
                PERFORM WTO.
-           
-      *    This does nothing but the compiler complains ending on an IF         
+
+      *    This does nothing but the compiler complains ending on an IF
            MOVE 0 TO RESPONSE-CODE.
 
       *    *************************************************************
@@ -174,126 +181,126 @@
       *
        WTO.
            EXEC CICS WRITE OPERATOR
-               TEXT(WTO-MESSAGE)
+               TEXT(CONSOLE-MESSAGE)
            END-EXEC.
            MOVE SPACES TO WTO-MESSAGE.
       *
        HANDLE-AIDS.
       * This function handles all the AIDs
+           MOVE 001 TO MSG-NUM.
            IF EIBAID = DFHENTER
-               MOVE '** AID: ENTER' TO WTO-MESSAGE
+               MOVE 'AID: ENTER' TO WTO-MESSAGE
                PERFORM WTO
            ELSE
            IF EIBAID = DFHCLEAR
-               MOVE '** AID: ENTER' TO WTO-MESSAGE
+               MOVE 'AID: ENTER' TO WTO-MESSAGE
                PERFORM WTO
            ELSE
            IF EIBAID = DFHPA1
-               MOVE '** AID: PA1' TO WTO-MESSAGE
+               MOVE 'AID: PA1' TO WTO-MESSAGE
                PERFORM WTO
            ELSE
            IF EIBAID = DFHPA2
-               MOVE '** AID: PA2' TO WTO-MESSAGE
+               MOVE 'AID: PA2' TO WTO-MESSAGE
                PERFORM WTO
            ELSE
            IF EIBAID = DFHPA3
-               MOVE '** AID: PA3' TO WTO-MESSAGE
+               MOVE 'AID: PA3' TO WTO-MESSAGE
                PERFORM WTO
            ELSE
            IF EIBAID = DFHPF1
-               MOVE '** AID: F1' TO WTO-MESSAGE
+               MOVE 'AID: F1' TO WTO-MESSAGE
                PERFORM WTO
            ELSE
            IF EIBAID = DFHPF2
-               MOVE '** AID: F2' TO WTO-MESSAGE
+               MOVE 'AID: F2' TO WTO-MESSAGE
                PERFORM WTO
            ELSE
            IF EIBAID = DFHPF3
-               MOVE '** AID: F3' TO WTO-MESSAGE
+               MOVE 'AID: F3' TO WTO-MESSAGE
                PERFORM WTO
            ELSE
            IF EIBAID = DFHPF4
-               MOVE '** AID: F4' TO WTO-MESSAGE
+               MOVE 'AID: F4' TO WTO-MESSAGE
                PERFORM WTO
            ELSE
            IF EIBAID = DFHPF5
-               MOVE '** AID: F5' TO WTO-MESSAGE
+               MOVE 'AID: F5' TO WTO-MESSAGE
                PERFORM WTO
            ELSE
            IF EIBAID = DFHPF6
-               MOVE '** AID: F6' TO WTO-MESSAGE
+               MOVE 'AID: F6' TO WTO-MESSAGE
                PERFORM WTO
            ELSE
            IF EIBAID = DFHPF7
-               MOVE '** AID: F7' TO WTO-MESSAGE
+               MOVE 'AID: F7' TO WTO-MESSAGE
                PERFORM WTO
            ELSE
            IF EIBAID = DFHPF8
-               MOVE '** AID: F8' TO WTO-MESSAGE
+               MOVE 'AID: F8' TO WTO-MESSAGE
                PERFORM WTO
            ELSE
            IF EIBAID = DFHPF9
-               MOVE '** AID: F9' TO WTO-MESSAGE
+               MOVE 'AID: F9' TO WTO-MESSAGE
                PERFORM WTO
            ELSE
            IF EIBAID = DFHPF10
-               MOVE '** AID: F10' TO WTO-MESSAGE
+               MOVE 'AID: F10' TO WTO-MESSAGE
                PERFORM WTO
            ELSE
            IF EIBAID = DFHPF11
-               MOVE '** AID: F11' TO WTO-MESSAGE
+               MOVE 'AID: F11' TO WTO-MESSAGE
                PERFORM WTO
            ELSE
            IF EIBAID = DFHPF12
-               MOVE '** AID: F12' TO WTO-MESSAGE
+               MOVE 'AID: F12' TO WTO-MESSAGE
                PERFORM WTO
            ELSE
            IF EIBAID = DFHPF13
-               MOVE '** AID: F13' TO WTO-MESSAGE
+               MOVE 'AID: F13' TO WTO-MESSAGE
                PERFORM WTO
            ELSE
            IF EIBAID = DFHPF14
-               MOVE '** AID: F14' TO WTO-MESSAGE
+               MOVE 'AID: F14' TO WTO-MESSAGE
                PERFORM WTO
            ELSE
            IF EIBAID = DFHPF15
-               MOVE '** AID: F15' TO WTO-MESSAGE
+               MOVE 'AID: F15' TO WTO-MESSAGE
                PERFORM WTO
            ELSE
            IF EIBAID = DFHPF16
-               MOVE '** AID: F16' TO WTO-MESSAGE
+               MOVE 'AID: F16' TO WTO-MESSAGE
                PERFORM WTO
            ELSE
            IF EIBAID = DFHPF17
-               MOVE '** AID: F17' TO WTO-MESSAGE
+               MOVE 'AID: F17' TO WTO-MESSAGE
                PERFORM WTO
            ELSE
            IF EIBAID = DFHPF18
-               MOVE '** AID: F18' TO WTO-MESSAGE
+               MOVE 'AID: F18' TO WTO-MESSAGE
                PERFORM WTO
            ELSE
            IF EIBAID = DFHPF19
-               MOVE '** AID: F19' TO WTO-MESSAGE
+               MOVE 'AID: F19' TO WTO-MESSAGE
                PERFORM WTO
            ELSE
            IF EIBAID = DFHPF20
-               MOVE '** AID: F20' TO WTO-MESSAGE
+               MOVE 'AID: F20' TO WTO-MESSAGE
                PERFORM WTO
            ELSE
            IF EIBAID = DFHPF21
-               MOVE '** AID: F21' TO WTO-MESSAGE
+               MOVE 'AID: F21' TO WTO-MESSAGE
                PERFORM WTO
            ELSE
            IF EIBAID = DFHPF22
-               MOVE '** AID: F22' TO WTO-MESSAGE
+               MOVE 'AID: F22' TO WTO-MESSAGE
                PERFORM WTO
            ELSE
            IF EIBAID = DFHPF23
-               MOVE '** AID: F23' TO WTO-MESSAGE
+               MOVE 'AID: F23' TO WTO-MESSAGE
                PERFORM WTO
            ELSE
            IF EIBAID = DFHPF24
-               MOVE '** AID: F24' TO WTO-MESSAGE
+               MOVE 'AID: F24' TO WTO-MESSAGE
                PERFORM WTO.
-      *    This does nothing but the compiler complains ending on an IF         
-           MOVE 0 TO RESPONSE-CODE.
+           MOVE 000 TO MSG-NUM.

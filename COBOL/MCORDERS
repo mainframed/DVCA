@@ -38,7 +38,13 @@
            05 START-RECORD-ID PIC 9(5) VALUE 00001.
            05  FILLER PIC X(2).
       * WTO MESSAGE STORAGE
-       01  WTO-MESSAGE PIC X(38) VALUE SPACES.
+       01  CONSOLE-MESSAGE.
+           05  HEAD PIC X(5) VALUE 'MELSC'.
+           05  MSG-NUM PIC 9(3) VALUE 000.
+           05  FILLER PIC X VALUE ' '.
+           05  TRANS-ID       PIC X(4).
+           05  FILLER PIC X(3) VALUE ' - '.
+           05  WTO-MESSAGE    PIC X(47) VALUE SPACES.
        01  MESSAGES.
            05 TITLES                   PIC X(14) VALUE 'Product Name: '.
            05 PROD-NAME                PIC X(34).
@@ -95,6 +101,7 @@
       *
        PROCEDURE DIVISION.
        MAIN.
+           MOVE 'MCOR' TO TRANS-ID.
       *
            PERFORM HANDLE-AIDS.
            MOVE 'Starting MCORDERS' TO WTO-MESSAGE.
@@ -346,7 +353,7 @@
       *
        WTO.
            EXEC CICS WRITE OPERATOR
-               TEXT(WTO-MESSAGE)
+               TEXT(CONSOLE-MESSAGE)
            END-EXEC.
            MOVE SPACES TO WTO-MESSAGE.
       *

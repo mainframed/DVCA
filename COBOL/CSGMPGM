@@ -20,7 +20,13 @@
        WORKING-STORAGE SECTION.
        77  WS-ABSTIME          PIC S9(15) COMP-3.
        77  RC                  PIC S9(4)  COMP.
-       01  WTO-MESSAGE PIC X(38) VALUE SPACES.
+       01  CONSOLE-MESSAGE.
+           05  HEAD PIC X(5) VALUE 'MELSC'.
+           05  MSG-NUM PIC 9(3) VALUE 000.
+           05  FILLER PIC X VALUE ' '.
+           05  TRANS-ID       PIC X(4).
+           05  FILLER PIC X(3) VALUE ' - '.
+           05  WTO-MESSAGE    PIC X(47) VALUE SPACES.
        01  WS-COMM.
            05  ISEED           PIC S9(8) COMP.
            05  COLORS OCCURS 5 PIC X.
@@ -35,9 +41,8 @@
       *
        PROCEDURE DIVISION.
        CSGM-MAIN.
+           MOVE 'CSGM' TO TRANS-ID.
            MOVE 'Displaying CSGM transaction' TO WTO-MESSAGE.
-           PERFORM CSGM-WTO.
-           MOVE EIBAID TO WTO-MESSAGE.
            PERFORM CSGM-WTO.
            IF EIBAID = DFHPF1
       *         EXEC KICKS XCTL PROGRAM('CSGMPGM') END-EXEC
@@ -88,6 +93,7 @@
       * WRITES A MESSAGE TO THE CONSOLE
        CSGM-WTO SECTION.
            EXEC CICS WRITE OPERATOR
-               TEXT(WTO-MESSAGE)
+               TEXT(CONSOLE-MESSAGE)
            END-EXEC.
            MOVE SPACES TO WTO-MESSAGE.
+
