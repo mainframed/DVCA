@@ -260,7 +260,7 @@ CANBUY  DFHMDF POS=(15,20),                                            X
                LENGTH=07,                                              X
                COLOR=BLUE,                                             X
                ATTRB=(NORM,PROT),                                      X
-               INITIAL='Sypply:'
+               INITIAL='Supply:'
 *
 BUY      DFHMDF POS=(20,19),                                           X
                LENGTH=01,                                              X
