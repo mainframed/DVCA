@@ -1,0 +1,360 @@
+      *///////////////////////////////////////////////////////////////
+      * Mel's Cargo
+      * TESTPGM:
+      *   Test Program for CICS testing tool
+      *
+      * Vulnerabilities:
+      *   None
+      *
+      *
+      * AUTHOR:
+      *   Philip Young aka Soldier of FORTRAN
+      *
+      * 02/10/2023
+      * License GPL v3
+      *///////////////////////////////////////////////////////////////
+      *
+      * TN3270 SBA Table:
+      *     http://www.tommysprinkle.com/mvs/P3270/bufaddr.htm
+      *
+      *///////////////////////////////////////////////////////////////
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID.   TESTPGM.
+       AUTHOR. SOLDIER OF FORTRAN.
+       INSTALLATION. DAMN VULNERABLE.
+       DATE-WRITTEN. 02/10/2023.
+       SECURITY. CONFIDENTIAL.
+       ENVIRONMENT DIVISION.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       77  WS-STORAGE   PIC X(24) VALUE 'TESTPGM WORKING STORAGE '.
+       77  WS-SM-ALT  PIC X     VALUE X'7E'.
+       77  WS-SM-NORM PIC X     VALUE X'F5'.
+       77  WS-ALTHT   PIC S9(4)  COMP.
+       77  WS-SCRNHT  PIC S9(4)  COMP.
+      * COMM AREA
+       01  MC-COMMS.
+           05  START-RECORD-ID PIC 9(5) VALUE 00001.
+           05 FILLER PIC X(9).
+
+       01  RESPONSE-CODE  PIC S9(4) COMP.
+      *    Attribute Value	Color
+      *    00               Default
+      *    F1               Blue
+      *    F2               Red
+      *    F3               Pink
+      *    F4               Green
+      *    F5               Turquoise
+      *    F6               Yellow
+      *    F7               White
+
+       01  BUFFER-ADDRESS PIC X(3) VALUE X'110000'
+
+       01  HAND-CODED-SCREEN.
+      *    This turbo sucks but we only do it once
+           10  SM-CMD PIC X     VALUE X'7E'.
+           10  SM-WCC PIC X     VALUE X'C3'.
+      *    Set Buffer Address (SBA) 1,1
+           10  FILLER PIC X(3)  VALUE X'114040'.
+      *    Start Field SF (1D) Values 11110000
+           10  FILLER PIC X(2)  VALUE X'1DF0'.
+      *    SA (28) Extended Highlighting (41) Default (00)
+           10  FILLER PIC X(3)  VALUE X'284100'.
+      *    SA (28) Color (42) BLUE (F2)
+           10  FILLER PIC X(3)  VALUE X'2842F1'.
+           10  FILLER PIC X(31)
+                              VALUE '-------------------------------'.
+           10  FILLER PIC X(14)
+                              VALUE ' Test Program '.
+           10  FILLER PIC X(31)
+                              VALUE '-------------------------------'.
+      * ---------------- Test 1 SA -------------------------------------
+      *    Set Buffer Address (SBA) 1,3
+           10 FILLER PIC X(3)  VALUE X'11C260'.
+      *    Start Field SF (1D) Values 11110000 - Locked and Visible
+           10 FILLER PIC X(2)  VALUE X'1DF0'.
+      *    SA (28) Extended Highlighting (41) Default (00)
+           10 FILLER PIC X(3)  VALUE X'284100'.
+      *    SA (28) Color (42) Green (F4)
+           10 FILLER PIC X(3)  VALUE X'2842F4'.
+           10 FILLER PIC X(29) VALUE 'Testing Set Attribue (SA)  : '.
+      *    Start Field SF (1D) Values 01101100 - Locked and Hidden
+           10 FILLER PIC X(2)  VALUE X'1D6C'.
+           10 FILLER PIC X(19) VALUE 'Set Attribue Hidden'.   
+      *    Start Field SF (1D) Values 11110000 - Locked and Visible
+           10 FILLER PIC X(2)  VALUE X'1DF0'.
+      *    SA (28) Extended Highlighting (41) Default (00)
+           10 FILLER PIC X(3)  VALUE X'284100'.
+      *    SA (28) Color (42) Default (00)
+           10 FILLER PIC X(3)  VALUE X'284200'.
+      * ---------------- Test 2 SFE ------------------------------------ 
+      *    Set Buffer Address SBA (11) 1,5
+           10 FILLER PIC X(3)  VALUE X'11C540'.
+      *    Start Field Extended SFE (29) Numer of Pairs (03)
+      *    Basic Field Attributes (C0) Visible and Locked (F0)
+      *    Extended Highlihting (41) Default (00)
+      *    Color (42) Turquoise (F5)
+      *    The KICKS COBOL preprocessor messes this up so we need
+      *     to split it in to two value
+           10 FILLER PIC X(4) VALUE X'2903C0F0'.
+           10 FILLER PIC X(4) VALUE X'410042F5'.
+           10 FILLER PIC X(29) VALUE 'Start Field Extended (SFE) : '.
+      *    Start Field Extended SFE (29) Numer of Pairs (03)
+      *    Basic Field Attributes (C0) Hidden and Locked (6A)
+      *    Extended Highlihting (41) Default (00)
+      *    Color (42) Turquoise (F5)
+           10 FILLER PIC X(4) VALUE X'2903C06C'.
+           10 FILLER PIC X(4) VALUE X'410042F5'.
+           10 FILLER PIC X(27) VALUE 'Start Field Extended Hidden'.
+           10 FILLER PIC X(2)  VALUE X'1D40'.
+      * ---------------- Test 3 MDT ------------------------------------ 
+      *    Set Buffer Address SBA (11) 1,7
+           10 FILLER PIC X(3)  VALUE X'11C760'.
+           10 FILLER PIC X(4) VALUE X'2903C0F0'.
+           10 FILLER PIC X(4) VALUE X'410042F6'.
+           10 FILLER PIC X(29) VALUE 'Modified Data Tag (MDT)    : '.
+      *     
+           10 FILLER PIC X(2) VALUE X'1DF1'.
+      *    SA (28) Extended Highlighting (41) Default (00)
+           10 FILLER PIC X(8) VALUE 'Modified'.   
+      *    Start Field SF (1D) Values 11110000 - Locked and Visible
+           10 FILLER PIC X(2)  VALUE X'1DF0'.
+      *    SA (28) Extended Highlighting (41) Default (00)
+           10 FILLER PIC X(3)  VALUE X'284100'.
+      *    SA (28) Color (42) Default (00)
+           10 FILLER PIC X(3)  VALUE X'284200'.
+      * ---------------- Test 3 RA ------------------------------------- 
+      *    Set Buffer Address SBA (11) 1,9
+           10 FILLER PIC X(3)  VALUE X'114A40'.
+           10 FILLER PIC X(4) VALUE X'2903C0F0'.
+           10 FILLER PIC X(4) VALUE X'410042F3'.
+           10 FILLER PIC X(29) VALUE 'Repeat Address (RA)        : '.
+      *    Repeat Address (3C) TO 9,74 WITH CHAR $ (5B)
+           10 FILLER PIC X(4) VALUE X'3C4BC95B'.
+      *    Start Field SF (1D) Values 11110000 - Locked and Visible
+           10 FILLER PIC X(2)  VALUE X'1DF0'.
+      *    SA (28) Extended Highlighting (41) Default (00)
+           10 FILLER PIC X(3)  VALUE X'284100'.
+      *    SA (28) Color (42) Default (00)
+           10 FILLER PIC X(3)  VALUE X'284200'.
+      * ---------------- Test 4 Overwrite ------------------------------ 
+      *    Set Buffer Address SBA (11) 1,11
+           10 FILLER PIC X(3)  VALUE X'114C60'.
+           10 FILLER PIC X(4) VALUE X'2903C0F0'.
+           10 FILLER PIC X(4) VALUE X'410042F7'.
+           10 FILLER PIC X(29) VALUE 'Overwrite Field            : '.
+           10 FILLER PIC X(22) VALUE 'I Will be over written'.
+           10 FILLER PIC X(2)  VALUE X'1D40'.
+      *    Set Buffer Address SBA (11) 30,11
+           10 FILLER PIC X(3)  VALUE X'114D40'.
+           10 FILLER PIC X(22) VALUE 'have been over written'.
+           10 FILLER PIC X(2)  VALUE X'1D40'.
+      * ---------------- Test 5 AID Detection -------------------------- 
+      *    Set Buffer Address SBA (11) 1,13
+           10 FILLER PIC X(3)  VALUE X'114F40'.
+           10 FILLER PIC X(4) VALUE X'2903C0F0'.
+           10 FILLER PIC X(4) VALUE X'410042F1'.
+           10 FILLER PIC X(29) VALUE 'PF Keys Detection          : '.
+           10 FILLER PIC X(23) VALUE 'F3 - Quit - PA1 - Test '.
+           10 FILLER PIC X(10) VALUE 'PF5 - Menu'.
+           10 FILLER PIC X(4) VALUE X'2903C06C'.
+           10 FILLER PIC X(4) VALUE X'410042F5'.
+           10 FILLER PIC X(12) VALUE 'PA3 - Secret'. 
+      * ---------------- Test 5 Insert Cursor -------------------------- 
+      *    Set Buffer Address SBA (11) 1,15
+           10 FILLER PIC X(3)  VALUE X'11D160'.
+           10 FILLER PIC X(4) VALUE X'2903C0F0'.
+           10 FILLER PIC X(4) VALUE X'410042F2'.
+           10 FILLER PIC X(29) VALUE 'Insert Cursor              : '.
+           10 FILLER PIC X(2)  VALUE X'1D40'.          
+      *    Insert Cursor     
+           10 FILLER PIC X  VALUE X'13'.
+      *
+       01  CONSOLE-MESSAGE.
+           05  HEAD PIC X(5) VALUE 'MELSC'.
+           05  MSG-NUM PIC 9(3) VALUE 000.
+           05  FILLER PIC X VALUE ' '.
+           05  TRANS-ID       PIC X(4).
+           05  FILLER PIC X(3) VALUE ' - '.
+           05  WTO-MESSAGE    PIC X(47) VALUE SPACES.
+      *
+       COPY MCGMMS.
+       COPY DFHAID.
+       COPY DFHBMSCA.
+       LINKAGE SECTION.
+      *
+       01  DFHCOMMAREA                       PIC X(14).
+
+       PROCEDURE DIVISION.
+
+           MOVE 'TEST' TO TRANS-ID.
+           MOVE 'Displaying TEST transaction' TO WTO-MESSAGE.
+           PERFORM WTO.
+           PERFORM HANDLE-AIDS.
+
+           IF EIBCALEN > ZERO THEN
+               MOVE DFHCOMMAREA TO MC-COMMS.
+
+           IF EIBAID EQUAL TO DFHCLEAR OR DFHPF3
+                EXEC CICS SEND CONTROL ERASE FREEKB END-EXEC
+                EXEC CICS RETURN END-EXEC
+           ELSE
+           IF EIBAID EQUAL TO DFHPF5
+              MOVE 'Returning to main menu' TO WTO-MESSAGE
+              PERFORM WTO
+               EXEC CICS XCTL
+                   PROGRAM('MCMMENU')
+               END-EXEC
+               EXEC CICS
+                   RETURN TRANSID('MCMM')
+                          COMMAREA(MC-COMMS)
+               END-EXEC.
+
+           EXEC CICS ASSIGN SCRNHT(WS-SCRNHT) END-EXEC.
+           EXEC CICS ASSIGN ALTSCRNHT(WS-ALTHT) END-EXEC.
+
+           IF WS-SCRNHT = WS-ALTHT
+               MOVE WS-SM-ALT  TO SM-CMD
+           ELSE
+               MOVE WS-SM-NORM TO SM-CMD.
+           EXEC CICS
+             SEND TEXT FROM(HAND-CODED-SCREEN) STRFIELD
+           END-EXEC.
+
+
+           EXEC CICS
+               RETURN TRANSID('TEST')
+                      COMMAREA(MC-COMMS)
+           END-EXEC.
+      * --- do receive to make sure msg gets to screen ---
+      *     EXEC KICKS RECEIVE CHECK END-EXEC.
+      *    *************************************************************
+      *
+      * WRITES A MESSAGE TO THE CONSOLE
+      *
+       WTO.
+           EXEC CICS WRITE OPERATOR
+               TEXT(CONSOLE-MESSAGE)
+           END-EXEC.
+           MOVE SPACES TO WTO-MESSAGE.
+      *
+      * This function handles all the AIDs
+      *
+       HANDLE-AIDS.
+           IF EIBAID = DFHENTER
+               MOVE '** AID: ENTER' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHCLEAR
+               MOVE '** AID: ENTER' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPA1
+               MOVE '** AID: PA1' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPA2
+               MOVE '** AID: PA2' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPA3
+               MOVE '** AID: PA3' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF1
+               MOVE '** AID: F1' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF2
+               MOVE '** AID: F2' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF3
+               MOVE '** AID: F3' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF4
+               MOVE '** AID: F4' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF5
+               MOVE '** AID: F5' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF6
+               MOVE '** AID: F6' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF7
+               MOVE '** AID: F7' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF8
+               MOVE '** AID: F8' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF9
+               MOVE '** AID: F9' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF10
+               MOVE '** AID: F10' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF11
+               MOVE '** AID: F11' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF12
+               MOVE '** AID: F12' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF13
+               MOVE '** AID: F13' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF14
+               MOVE '** AID: F14' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF15
+               MOVE '** AID: F15' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF16
+               MOVE '** AID: F16' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF17
+               MOVE '** AID: F17' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF18
+               MOVE '** AID: F18' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF19
+               MOVE '** AID: F19' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF20
+               MOVE '** AID: F20' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF21
+               MOVE '** AID: F21' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF22
+               MOVE '** AID: F22' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF23
+               MOVE '** AID: F23' TO WTO-MESSAGE
+               PERFORM WTO
+           ELSE
+           IF EIBAID = DFHPF24
+               MOVE '** AID: F24' TO WTO-MESSAGE
+               PERFORM WTO.
+      *    This does nothing but the compiler complains ending on an IF
+           MOVE 0 TO RESPONSE-CODE.
