@@ -5,7 +5,7 @@ cat << 'END'
 //COMPCOB JOB (JOB),
 //             'COMPILE COBOL',
 //             CLASS=A,
-//             MSGCLASS=A,
+//             MSGCLASS=H,
 //             MSGLEVEL=(1,1),
 //             USER=IBMUSER,
 //             PASSWORD=SYS1,
