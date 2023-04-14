@@ -20,7 +20,8 @@ to access the vulnerable application.
 
 ![MCGM](screenshots/MCGM.png?raw=true "MCGM")
 
-Be sure to be using a tool like BIRP to be able to find the vulnerabilities. 
+Be sure to be using a tool like BIRP to be able to find the vulnerabilities. Strongly recommend you watch this talk: 
+https://www.youtube.com/watch?v=Qakj82DoKME
 
 ## Building From Source
 
